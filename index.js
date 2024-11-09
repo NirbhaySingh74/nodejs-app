@@ -25,7 +25,7 @@ const DataSchema = new mongoose.Schema({
 const Data = mongoose.model("Data", DataSchema);
 
 
-app.post("/add-data", async (req, res) => {
+app.post("/api/add", async (req, res) => {
   try {
     const { name, age } = req.body;
     const newData = new Data({ name, age });
@@ -37,7 +37,7 @@ app.post("/add-data", async (req, res) => {
 });
 
 
-app.get("/get-data", async (req, res) => {
+app.get("/api/users", async (req, res) => {
   try {
     const data = await Data.find();
     res.status(200).json({ message: "Data retrieved successfully", data });
