@@ -1,46 +1,52 @@
-import express from 'express';
-import bodyParser from 'body-parser';
+import express from "express";
+import mongoose from "mongoose";
+import bodyParser from "body-parser";
+import dotenv from "dotenv";
 
-import db from "./mongoC.js";
-
-const port = 4000;
+dotenv.config();
 const app = express();
+const port = process.env.PORT || 5000;
 
-app.use((_req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Headers', '*');
-  
-    next();
-  });
 
-// Parses the text as url encoded data
-app.use(bodyParser.urlencoded({ extended: true }));
- 
-// Parses the text as json
 app.use(bodyParser.json());
 
-app.get('/', (req, res) => {
-    res.send('Hello World, from express');
-})
 
-app.post('/addUser',async (req, res) => {
-    let collection = await db.collection("users");
-    let newDocument = req.body;
-    newDocument.date = new Date();
-    let result = await collection.insertOne(newDocument);
-    console.log("rreq"+req.body);
-    res.send(result).status(204);
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => console.log("MongoDB connected"))
+  .catch((err) => console.error("MongoDB connection error:", err));
+
+
+const DataSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  age: { type: Number, required: true },
 });
 
-app.get('/getUsers', async(req, res) => {
-    let collection = await db.collection("users");
-    let results = await collection.find({})
-      
-      .toArray();
-    res.send(results).status(200);
+const Data = mongoose.model("Data", DataSchema);
+
+
+app.post("/add-data", async (req, res) => {
+  try {
+    const { name, age } = req.body;
+    const newData = new Data({ name, age });
+    await newData.save();
+    res.status(201).json({ message: "Data added successfully", data: newData });
+  } catch (error) {
+    res.status(500).json({ message: "Error adding data", error });
+  }
 });
 
-app.listen(port, function () {
-    console.log("Server is listening at port:" + port);
+
+app.get("/get-data", async (req, res) => {
+  try {
+    const data = await Data.find();
+    res.status(200).json({ message: "Data retrieved successfully", data });
+  } catch (error) {
+    res.status(500).json({ message: "Error retrieving data", error });
+  }
 });
- 
+
+
+app.listen(port, () => {
+  console.log(`Server running on http://localhost:${port}`);
+});
