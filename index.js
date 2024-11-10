@@ -46,6 +46,19 @@ app.get("/api/users", async (req, res) => {
   }
 });
 
+app.get("/api/users/:id", async (req, res) => {
+  try {
+    const { id } = req.params;  
+    const data = await Data.findById(id); 
+    if (!data) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.status(200).json({ message: "Data retrieved successfully", data });
+  } catch (error) {
+    res.status(500).json({ message: "Error retrieving data", error });
+  }
+});
+
 
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
